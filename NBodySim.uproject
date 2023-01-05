@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{0004B388-08DA-EE9E-38AB-6E4C6232FCF4}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "NBodySim",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
