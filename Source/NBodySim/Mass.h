@@ -11,17 +11,19 @@ class NBODYSIM_API AMass : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
 	AMass();
+	double mass;
+	FVector2D position;
+	FVector2D velocity;
+
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		UStaticMeshComponent* mesh;
+	UStaticMeshComponent* mesh;
+	virtual void Tick(float DeltaSecs) override;
+	UStaticMeshComponent* GetMesh(); 
+
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-	UFUNCTION()
-		UStaticMeshComponent* GetMesh(); 
 };

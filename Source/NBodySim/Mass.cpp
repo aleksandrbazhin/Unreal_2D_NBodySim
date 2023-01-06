@@ -1,6 +1,14 @@
 #include "Mass.h"
 
 
+// TODO: change to StaticMeshActor
+
+// TODO: load mesh to static mesh
+
+// TODO: manipulate struct array from the GameMode
+
+// TODO: nbody physics? parallelism?  
+
 AMass::AMass()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,18 +22,22 @@ AMass::AMass()
 void AMass::BeginPlay()
 {
 	Super::BeginPlay();
-	mesh->SetWorldLocation(FVector(0.0, 0.0, 0.0));
+	mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0));
 }
 
 
-void AMass::Tick(float DeltaTime)
+void AMass::Tick(float DeltaSecs)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSecs);
+	mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0f));
 
-	mesh->SetWorldLocation(mesh->GetRelativeLocation() + FVector(DeltaTime * 50.0, 0.0, 0.0));
-	if (mesh->GetRelativeLocation().X > 100.0) {
-		mesh->SetWorldLocation(FVector(-100.0, 0.0, 0.0));
-	}
+	// Super::Tick(DeltaSecs);
+	// position += velocity * DeltaSecs;
+	// if (position.X > 2000.0f) {
+	// 	position.X = -2000.0f;
+	// }
+	// mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0f));
+
 }
 
 
