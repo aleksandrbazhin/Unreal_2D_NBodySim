@@ -11,7 +11,8 @@ class NBODYSIM_API AMass : public AActor
 	
 public:
 	AMass();
-	double Mass;
+	void SetMass(float NewMass);
+	float Mass = 1.0f;
 	FVector2D Position;
 	FVector2D Velocity;
 

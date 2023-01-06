@@ -2,22 +2,29 @@
 
 
 // TODO: change to StaticMeshActor
-
-// TODO: load mesh to static mesh
-
 // TODO: manipulate struct array from the GameMode
-
 // TODO: nbody physics? parallelism?  
 
 
+const float MESH_SCALE = 0.004;
 
 AMass::AMass()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+	PrimaryActorTick.TickGroup = TG_PostPhysics;
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("StaticMesh'/Game/Assets/CircleMesh'"));
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MassMesh"));
 	RootComponent = StaticMesh;
 	StaticMesh->SetStaticMesh(MeshAsset.Object);
+}
+
+void AMass::SetMass(float NewMass)
+{
+	Mass = NewMass;
+	float scale = Mass * MESH_SCALE;
+	StaticMesh->SetRelativeScale3D(FVector(scale, scale, 1.0f));
 }
 
 

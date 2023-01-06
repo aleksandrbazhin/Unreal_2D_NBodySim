@@ -3,13 +3,18 @@
 // TODO: export numbodies as a parameter to editor
 // TODO: determine world_size from camera, or camera rect from world size 
 
+
 const FVector2D ANBodySimGameModeBase::WORLD_SIZE = FVector2D(8000, 4520);
 const int ANBodySimGameModeBase::NUM_BODIES;
-
+const float GRAVITY_CONSTANT = 10000.0f;
+const float MINIMUM_AFFECTING_DISTANCE = 10.0f;
+const float MAX_TICK = 0.0167;
 
 ANBodySimGameModeBase::ANBodySimGameModeBase() 
 {
     PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bTickEvenWhenPaused = false;
+    PrimaryActorTick.TickGroup = TG_DuringPhysics;
 }
 
 
@@ -23,9 +28,7 @@ void ANBodySimGameModeBase::BeginPlay()
         FVector2D random_position(
             FMath::FRandRange(-ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f, ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f),
             FMath::FRandRange(-ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f, ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f)
-        ); 
-        // FVector location(random_position.Y, random_position.X, 0.0f);
-
+        );
         AMass* mass = GetWorld()->SpawnActor<AMass>(
             AMass::LocationFrom2DPosition(random_position), no_rotation, spawn_info);
         mass->Position = random_position;
@@ -33,30 +36,41 @@ void ANBodySimGameModeBase::BeginPlay()
             FMath::FRandRange(-400.0f, 400.0f),
             FMath::FRandRange(-400.0f, 400.0f)
         ); 
-        masses.Push(mass);
+        // mass->Mass = FMath::FRandRange(10.0, 100.0);
+        mass->SetMass(FMath::FRandRange(10.0, 100.0));
+        Masses.Push(mass);
     }
 }
 
 void ANBodySimGameModeBase::Tick(float DeltaSecs)
 {
+    if (DeltaSecs > MAX_TICK) {
+        DeltaSecs = MAX_TICK;
+    }
     Super::Tick(DeltaSecs);
 
-    for (AMass* mass: masses)
+    FVector2D half_world = ANBodySimGameModeBase::WORLD_SIZE / 2.0;
+
+    for (AMass* mass: Masses)
+    {
+        FVector2D force(0.0, 0.0);
+        for (AMass* affecting_mass: Masses) {
+            if (affecting_mass == mass) continue; // exclude self
+            float distance = FVector2D::Distance(mass->Position, affecting_mass->Position);
+            distance = FMath::Clamp(distance, MINIMUM_AFFECTING_DISTANCE, WORLD_SIZE.X / 2.0f); // avoids division by zero
+            force += mass->Mass * affecting_mass->Mass * GRAVITY_CONSTANT / distance / distance * (affecting_mass->Position - mass->Position) / distance;
+        }
+        mass->Velocity += force * DeltaSecs / mass->Mass; 
+    }
+
+    for (AMass* mass: Masses)
     {
         mass->Position += mass->Velocity * DeltaSecs;
-
-        if (mass->Position.X > ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f) {
-            mass->Position.X = -ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f;
-        }
-        if (mass->Position.X < -ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f) {
-            mass->Position.X = ANBodySimGameModeBase::WORLD_SIZE.X / 2.0f;
-        }
-        if (mass->Position.Y > ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f) {
-            mass->Position.Y = -ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f;
-        }
-        if (mass->Position.Y < -ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f) {
-            mass->Position.Y = ANBodySimGameModeBase::WORLD_SIZE.Y / 2.0f;
-        }
+        mass->Position = FVector2D(
+            FMath::Wrap(mass->Position.X, -half_world.X, half_world.X),
+            FMath::Wrap(mass->Position.Y, -half_world.Y, half_world.Y)
+        );
     }
+
 
 }
