@@ -1,5 +1,7 @@
 #include "NBodySimGameModeBase.h"
 
+#include "Runtime/Core/Public/Async/ParallelFor.h"
+
 // TODO: export numbodies as a parameter to editor
 // TODO: determine world_size from camera, or camera rect from world size 
 
@@ -51,17 +53,30 @@ void ANBodySimGameModeBase::Tick(float DeltaSecs)
 
     FVector2D half_world = ANBodySimGameModeBase::WORLD_SIZE / 2.0;
 
-    for (AMass* mass: Masses)
-    {
+
+    ParallelFor(Masses.Num(), [&] (int i) {
         FVector2D force(0.0, 0.0);
         for (AMass* affecting_mass: Masses) {
-            if (affecting_mass == mass) continue; // exclude self
-            float distance = FVector2D::Distance(mass->Position, affecting_mass->Position);
-            distance = FMath::Clamp(distance, MINIMUM_AFFECTING_DISTANCE, WORLD_SIZE.X / 2.0f); // avoids division by zero
-            force += mass->Mass * affecting_mass->Mass * GRAVITY_CONSTANT / distance / distance * (affecting_mass->Position - mass->Position) / distance;
+            if (affecting_mass == Masses[i]) continue; // exclude self
+            float distance = FVector2D::Distance(Masses[i]->Position, affecting_mass->Position);
+            distance = FMath::Clamp(distance, MINIMUM_AFFECTING_DISTANCE, half_world.X); // avoids division by zero
+            force += Masses[i]->Mass * affecting_mass->Mass * GRAVITY_CONSTANT / distance / distance * (affecting_mass->Position - Masses[i]->Position) / distance;
         }
-        mass->Velocity += force * DeltaSecs / mass->Mass; 
-    }
+        Masses[i]->Velocity += force * DeltaSecs / Masses[i]->Mass;
+    });
+
+
+    // for (AMass* mass: Masses)
+    // {
+    //     FVector2D force(0.0, 0.0);
+    //     for (AMass* affecting_mass: Masses) {
+    //         if (affecting_mass == mass) continue; // exclude self
+    //         float distance = FVector2D::Distance(mass->Position, affecting_mass->Position);
+    //         distance = FMath::Clamp(distance, MINIMUM_AFFECTING_DISTANCE, WORLD_SIZE.X / 2.0f); // avoids division by zero
+    //         force += mass->Mass * affecting_mass->Mass * GRAVITY_CONSTANT / distance / distance * (affecting_mass->Position - mass->Position) / distance;
+    //     }
+    //     mass->Velocity += force * DeltaSecs / mass->Mass; 
+    // }
 
     for (AMass* mass: Masses)
     {
