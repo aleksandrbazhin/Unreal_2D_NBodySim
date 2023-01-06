@@ -9,39 +9,41 @@
 
 // TODO: nbody physics? parallelism?  
 
+
+
 AMass::AMass()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>SphereMeshAsset(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
-	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MassMesh"));
-	RootComponent = mesh;
-	mesh->SetStaticMesh(SphereMeshAsset.Object);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MassMesh"));
+	RootComponent = StaticMesh;
+	StaticMesh->SetStaticMesh(SphereMeshAsset.Object);
 }
 
 
 void AMass::BeginPlay()
 {
 	Super::BeginPlay();
-	mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0));
+	UpdatePosition();
 }
 
 
 void AMass::Tick(float DeltaSecs)
 {
 	Super::Tick(DeltaSecs);
-	mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0f));
-
-	// Super::Tick(DeltaSecs);
-	// position += velocity * DeltaSecs;
-	// if (position.X > 2000.0f) {
-	// 	position.X = -2000.0f;
-	// }
-	// mesh->SetWorldLocation(FVector(position.Y, position.X, 0.0f));
-
+	UpdatePosition();
 }
 
 
 UStaticMeshComponent* AMass::GetMesh() {
-	return mesh;
-} 
+	return StaticMesh;
+}
 
+FVector AMass::LocationFrom2DPosition(FVector2D planar_position) {
+	return FVector(planar_position.Y, planar_position.X, 0.0f);
+}
+
+
+void AMass::UpdatePosition() {
+	StaticMesh->SetWorldLocation(AMass::LocationFrom2DPosition(Position));
+}

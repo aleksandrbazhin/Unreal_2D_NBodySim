@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,17 +11,22 @@ class NBODYSIM_API AMass : public AActor
 	
 public:
 	AMass();
-	double mass;
-	FVector2D position;
-	FVector2D velocity;
+	double Mass;
+	FVector2D Position;
+	FVector2D Velocity;
 
-	
-	UStaticMeshComponent* mesh;
+	static FVector LocationFrom2DPosition(FVector2D planar_position);
+
 	virtual void Tick(float DeltaSecs) override;
+	
+	UStaticMeshComponent* StaticMesh;
 	UStaticMeshComponent* GetMesh(); 
 
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	void UpdatePosition();
 
 };
