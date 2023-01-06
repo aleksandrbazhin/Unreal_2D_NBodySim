@@ -14,10 +14,10 @@
 AMass::AMass()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("StaticMesh'/Game/Assets/CircleMesh'"));
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MassMesh"));
 	RootComponent = StaticMesh;
-	StaticMesh->SetStaticMesh(SphereMeshAsset.Object);
+	StaticMesh->SetStaticMesh(MeshAsset.Object);
 }
 
 
