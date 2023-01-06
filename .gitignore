@@ -4,3 +4,4 @@ DerivedDataCache/*
 .kdev4/*
 Binaries/*
 Intermediate/*
+*.log
