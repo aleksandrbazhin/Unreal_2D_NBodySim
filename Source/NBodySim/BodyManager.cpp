@@ -5,7 +5,7 @@
 // constexpr FVector2D WORLD_SIZE = FVector2D(WorldWidth, WorldWidth/);
 // const FVector2D WORLD_SIZE = FVector2D(8000, 4520);
 
-const float MINIMUM_AFFECTING_DISTANCE = 5.0f; // to prevent division by zero and too bi forces 
+const float MINIMUM_AFFECTING_DISTANCE = 10.0f; // to prevent division by zero and too high forces 
 const float MAX_TICK = 0.0167; // to have stable simulation steps
 
 
@@ -48,24 +48,29 @@ void ABodyManager::InitMasses()
 }
 
 
-// void ABodyManager::InitSimulationPlane() {
-// 	if (UWorld* World = GetWorld()) {
-// 		APlayerCameraManager* CameraManager = World->GetFirstPlayerController()->PlayerCameraManager;
-// 		CameraManager->SetOrthographic = true;
-// 		CameraManager->SetOrthoWidth(WorldWidth);
-// 		WorldWidth = CameraManager->GetOrthoWidth();
-// 		WorldHeight = WorldWidth / CameraManager->DefaultAspectRatio;
-// 	}
-// }
-
-
 void ABodyManager::BeginPlay()
 {
 // 	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, TEXT("Tick!"));
 	Super::BeginPlay();
-//	InitSimulationPlane();
 	InitMasses();
 }
+
+
+void ABodyManager::RunGravityStep(float DeltaTime)
+{
+	float MaxGravityDistance = WorldWidth;
+    ParallelFor(Masses.Num(), [&] (int i) {
+        FVector2D force(0.0f, 0.0f);
+        for (FMassEntity& affecting_mass: Masses) {
+            if (affecting_mass.id == Masses[i].id) continue; // exclude self
+            float distance = FVector2D::Distance(Masses[i].Position, affecting_mass.Position);
+            distance = FMath::Max(distance, MINIMUM_AFFECTING_DISTANCE); // avoids division by zero
+            force += Masses[i].Mass * affecting_mass.Mass * G / distance / distance * (affecting_mass.Position - Masses[i].Position) / distance;
+        }
+        Masses[i].Velocity += force * DeltaTime / Masses[i].Mass;
+    });
+}
+
 
 
 void ABodyManager::Tick(float DeltaTime)
@@ -75,19 +80,9 @@ void ABodyManager::Tick(float DeltaTime)
 	}
 	Super::Tick(DeltaTime);
 
+	RunGravityStep(DeltaTime);
+
     FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
-
-    ParallelFor(Masses.Num(), [&] (int i) {
-        FVector2D force(0.0f, 0.0f);
-        for (FMassEntity& affecting_mass: Masses) {
-            if (affecting_mass.id == Masses[i].id) continue; // exclude self
-            float distance = FVector2D::Distance(Masses[i].Position, affecting_mass.Position);
-            distance = FMath::Clamp(distance, MINIMUM_AFFECTING_DISTANCE, half_world.X); // avoids division by zero
-            force += Masses[i].Mass * affecting_mass.Mass * G / distance / distance * (affecting_mass.Position - Masses[i].Position) / distance;
-        }
-        Masses[i].Velocity += force * DeltaTime / Masses[i].Mass;
-    });
-
 	for (FMassEntity& mass: Masses)
 	{
 		mass.Position += mass.Velocity * DeltaTime;
@@ -102,7 +97,7 @@ void ABodyManager::Tick(float DeltaTime)
 }
 
 
-FVector ABodyManager::PositionFromPlanar(const FVector2D& plane_coordinates) {
-	return FVector(plane_coordinates.Y, plane_coordinates.X, 0.0f);
+FVector ABodyManager::PositionFromPlanar(const FVector2D& XYCoordinates) {
+	return FVector(XYCoordinates.Y, XYCoordinates.X, 0.0f);
 }
 

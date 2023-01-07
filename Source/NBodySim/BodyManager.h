@@ -29,8 +29,6 @@ public:
 		UInstancedStaticMeshComponent *InstancedMesh;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		int MassCount = 100;
-	UPROPERTY(EditAnywhere, Category = "NBody Ortho Camera")
-		float WorldWidth = 8000.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float BodyDisplayScale = 0.003f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
@@ -41,15 +39,19 @@ public:
 		float MinMass = 20.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float MaxMass = 100.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Ortho Camera")
+		float WorldWidth = 8000.0f;
+		float WorldHeight = WorldWidth / 1.777778f; // camera default aspect ratio
 
 
 private:
 	TArray<FMassEntity> Masses;
 	TArray<FTransform> Transforms;
-	float WorldHeight = WorldWidth / 1.777778f; // camera default aspect ratio
-	// void InitSimulationPlane(); // automatically setup WorldWidth, WorldHeight and Camera
 	void InitMasses();
-	static FVector PositionFromPlanar(const FVector2D& plane_coordinates);
+	void RunGravityStep(float DeltaTime);
+
+	static FVector PositionFromPlanar(const FVector2D& XYCoordinates);
+
 
 protected:
 	virtual void BeginPlay() override;
