@@ -8,7 +8,7 @@
 
 
 USTRUCT()
-struct FMassEntity {
+struct FBodyEntity {
 	GENERATED_BODY()
 
 	FVector2D Position;
@@ -26,9 +26,9 @@ class NBODYSIM_API ABodyManager : public AActor
 public:	
 	ABodyManager();
 	UPROPERTY(VisibleAnywhere, Instanced, NoClear)
-		UInstancedStaticMeshComponent *InstancedMesh;
+		UInstancedStaticMeshComponent* InstancedMesh;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		int MassCount = 100;
+		int BodyNum = 100;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float BodyDisplayScale = 0.003f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
@@ -45,9 +45,10 @@ public:
 
 
 private:
-	TArray<FMassEntity> Masses;
+	TArray<FBodyEntity> Bodies;
 	TArray<FTransform> Transforms;
-	void InitMasses();
+	void InitBodies();
+	void BuildBHTree();
 	void RunGravityStep(float DeltaTime);
 
 	static FVector PositionFromPlanar(const FVector2D& XYCoordinates);

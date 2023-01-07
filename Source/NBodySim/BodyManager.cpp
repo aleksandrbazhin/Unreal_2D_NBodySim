@@ -21,11 +21,11 @@ ABodyManager::ABodyManager()
 }
 
 
-void ABodyManager::InitMasses()
+void ABodyManager::InitBodies()
 {
-	Masses.SetNumUninitialized(MassCount);
-	Transforms.SetNumUninitialized(MassCount);
-	for (int index = 0; index < MassCount; index++)
+	Bodies.SetNumUninitialized(BodyNum);
+	Transforms.SetNumUninitialized(BodyNum);
+	for (int index = 0; index < BodyNum; index++)
 	{
 		FVector2D random_position(
 			FMath::FRandRange(-WorldWidth / 2.0f, WorldWidth / 2.0f),
@@ -43,7 +43,7 @@ void ABodyManager::InitMasses()
 		);
 		Transforms[index] = transform;
 		int mesh_index = InstancedMesh->AddInstance(transform);
-		Masses[index] = FMassEntity{random_position, random_velocity, mass, mesh_index};
+		Bodies[index] = FBodyEntity{random_position, random_velocity, mass, mesh_index};
 	}
 }
 
@@ -52,22 +52,27 @@ void ABodyManager::BeginPlay()
 {
 // 	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, TEXT("Tick!"));
 	Super::BeginPlay();
-	InitMasses();
+	InitBodies();
+}
+
+
+void ABodyManager::BuildBHTree() {
+
 }
 
 
 void ABodyManager::RunGravityStep(float DeltaTime)
 {
 	float MaxGravityDistance = WorldWidth;
-    ParallelFor(Masses.Num(), [&] (int i) {
-        FVector2D force(0.0f, 0.0f);
-        for (FMassEntity& affecting_mass: Masses) {
-            if (affecting_mass.id == Masses[i].id) continue; // exclude self
-            float distance = FVector2D::Distance(Masses[i].Position, affecting_mass.Position);
+    ParallelFor(Bodies.Num(), [&] (int i) {
+        FVector2D acceleration(0.0f, 0.0f);
+        for (FBodyEntity& affecting_body: Bodies) {
+            if (affecting_body.id == Bodies[i].id) continue; // exclude self
+            float distance = FVector2D::Distance(Bodies[i].Position, affecting_body.Position);
             distance = FMath::Max(distance, MINIMUM_AFFECTING_DISTANCE); // avoids division by zero
-            force += Masses[i].Mass * affecting_mass.Mass * G / distance / distance * (affecting_mass.Position - Masses[i].Position) / distance;
+            acceleration += affecting_body.Mass / distance * G / distance * (affecting_body.Position - Bodies[i].Position) / distance;
         }
-        Masses[i].Velocity += force * DeltaTime / Masses[i].Mass;
+        Bodies[i].Velocity += acceleration * DeltaTime ;
     });
 }
 
@@ -83,15 +88,15 @@ void ABodyManager::Tick(float DeltaTime)
 	RunGravityStep(DeltaTime);
 
     FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
-	for (FMassEntity& mass: Masses)
+	for (FBodyEntity& body: Bodies)
 	{
-		mass.Position += mass.Velocity * DeltaTime;
-		mass.Position = FVector2D(
-            FMath::Wrap(mass.Position.X, -half_world.X, half_world.X),
-            FMath::Wrap(mass.Position.Y, -half_world.Y, half_world.Y)
+		body.Position += body.Velocity * DeltaTime;
+		body.Position = FVector2D(
+            FMath::Wrap(body.Position.X, -half_world.X, half_world.X),
+            FMath::Wrap(body.Position.Y, -half_world.Y, half_world.Y)
         );
-		Transforms[mass.id].SetTranslation(PositionFromPlanar(mass.Position));
-		InstancedMesh->UpdateInstanceTransform(mass.id, Transforms[mass.id]);
+		Transforms[body.id].SetTranslation(PositionFromPlanar(body.Position));
+		InstancedMesh->UpdateInstanceTransform(body.id, Transforms[body.id]);
 	}
 	InstancedMesh->MarkRenderStateDirty();
 }
