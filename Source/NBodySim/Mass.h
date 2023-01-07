@@ -21,7 +21,10 @@ public:
 	virtual void Tick(float DeltaSecs) override;
 	
 	UStaticMeshComponent* StaticMesh;
-	UStaticMeshComponent* GetMesh(); 
+	// UStaticMeshComponent* GetMesh(); 
+
+	UInstancedStaticMeshComponent *ISM;
+
 
 
 protected:

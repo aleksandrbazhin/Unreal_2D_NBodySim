@@ -28,5 +28,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+
 	TArray<AMass*> Masses;
+
+	// UPROPERTY(Instanced, NoClear)
+	// 	UInstancedStaticMeshComponent *MegaMesh;
 };
