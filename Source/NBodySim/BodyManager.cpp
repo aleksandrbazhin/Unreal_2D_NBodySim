@@ -2,10 +2,11 @@
 #include "Runtime/Core/Public/Async/ParallelFor.h"
 
 
-const FVector2D WORLD_SIZE = FVector2D(8000, 4520);
+// constexpr FVector2D WORLD_SIZE = FVector2D(WorldWidth, WorldWidth/);
+// const FVector2D WORLD_SIZE = FVector2D(8000, 4520);
 
-const float MINIMUM_AFFECTING_DISTANCE = 10.0f;
-const float MAX_TICK = 0.0167;
+const float MINIMUM_AFFECTING_DISTANCE = 5.0f; // to prevent division by zero and too bi forces 
+const float MAX_TICK = 0.0167; // to have stable simulation steps
 
 
 ABodyManager::ABodyManager()
@@ -27,14 +28,14 @@ void ABodyManager::InitMasses()
 	for (int index = 0; index < MassCount; index++)
 	{
 		FVector2D random_position(
-			FMath::FRandRange(-WORLD_SIZE.X / 2.0f, WORLD_SIZE.X / 2.0f),
-			FMath::FRandRange(-WORLD_SIZE.Y / 2.0f, WORLD_SIZE.Y / 2.0f));
+			FMath::FRandRange(-WorldWidth / 2.0f, WorldWidth / 2.0f),
+			FMath::FRandRange(-WorldHeight / 2.0f, WorldHeight / 2.0f));
 		FVector2D random_velocity(
 			FMath::FRandRange(-MaxInitialVelocity, MaxInitialVelocity),
 			FMath::FRandRange(-MaxInitialVelocity, MaxInitialVelocity));
 		float mass = FMath::FRandRange(MinMass, MaxMass);
 
-		float mesh_scale = mass * BodyScale;
+		float mesh_scale = mass * BodyDisplayScale;
 		FTransform transform (
 			FRotator(0.0f),
 			PositionFromPlanar(random_position),
@@ -47,13 +48,25 @@ void ABodyManager::InitMasses()
 }
 
 
+// void ABodyManager::InitSimulationPlane() {
+// 	if (UWorld* World = GetWorld()) {
+// 		APlayerCameraManager* CameraManager = World->GetFirstPlayerController()->PlayerCameraManager;
+// 		CameraManager->SetOrthographic = true;
+// 		CameraManager->SetOrthoWidth(WorldWidth);
+// 		WorldWidth = CameraManager->GetOrthoWidth();
+// 		WorldHeight = WorldWidth / CameraManager->DefaultAspectRatio;
+// 	}
+// }
+
 
 void ABodyManager::BeginPlay()
 {
+// 	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, TEXT("Tick!"));
 	Super::BeginPlay();
+//	InitSimulationPlane();
 	InitMasses();
-
 }
+
 
 void ABodyManager::Tick(float DeltaTime)
 {
@@ -62,7 +75,7 @@ void ABodyManager::Tick(float DeltaTime)
 	}
 	Super::Tick(DeltaTime);
 
-    FVector2D half_world = WORLD_SIZE / 2.0f;
+    FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
 
     ParallelFor(Masses.Num(), [&] (int i) {
         FVector2D force(0.0f, 0.0f);
