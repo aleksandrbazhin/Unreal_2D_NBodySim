@@ -27,13 +27,25 @@ public:
 	ABodyManager();
 	UPROPERTY(VisibleAnywhere, Instanced, NoClear)
 		UInstancedStaticMeshComponent *InstancedMesh;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		int MassCount = 100;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float BodyScale = 0.003f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float G = 10000.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float MaxInitialVelocity = 400.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float MinMass = 20.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float MaxMass = 100.0f;
+
 
 private:
 	TArray<FMassEntity> Masses;
+	TArray<FTransform> Transforms;
 	void InitMasses();
-
+	static FVector PositionFromPlanar(const FVector2D& plane_coordinates);
 
 protected:
 	virtual void BeginPlay() override;
