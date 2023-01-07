@@ -22,7 +22,9 @@ ABodyManager::ABodyManager()
 
 void ABodyManager::InitMasses()
 {
-	for (int i = 0; i < MassCount; i++)
+	Masses.SetNumUninitialized(MassCount);
+	Transforms.SetNumUninitialized(MassCount);
+	for (int index = 0; index < MassCount; index++)
 	{
 		FVector2D random_position(
 			FMath::FRandRange(-WORLD_SIZE.X / 2.0f, WORLD_SIZE.X / 2.0f),
@@ -38,10 +40,9 @@ void ABodyManager::InitMasses()
 			PositionFromPlanar(random_position),
 			FVector(mesh_scale, mesh_scale, 1.0f)
 		);
-		
-		Transforms.Push(transform);
+		Transforms[index] = transform;
 		int mesh_index = InstancedMesh->AddInstance(transform);
-		Masses.Push({random_position, random_velocity, mass, mesh_index});
+		Masses[index] = FMassEntity{random_position, random_velocity, mass, mesh_index};
 	}
 }
 
