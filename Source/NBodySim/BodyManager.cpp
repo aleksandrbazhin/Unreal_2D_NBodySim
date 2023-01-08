@@ -1,8 +1,9 @@
 #include "BodyManager.h"
 #include "Runtime/Core/Public/Async/ParallelFor.h"
+#include "BarnesHutTree.h"
 
 
-const float MINIMUM_AFFECTING_DISTANCE = 10.0f; // to prevent division by zero and too high forces 
+const float MINIMUM_AFFECTING_DISTANCE = 10.0f; // to prevent division by zero and forces too high 
 const float MAX_TICK = 0.0167; // to have stable simulation steps
 
 
@@ -22,8 +23,7 @@ void ABodyManager::InitBodies()
 {
 	Bodies.SetNumUninitialized(BodyNum);
 	Transforms.SetNumUninitialized(BodyNum);
-	for (int index = 0; index < BodyNum; ++index)
-	{
+	for (int index = 0; index < BodyNum; ++index) {
 		FVector2D random_position(FMath::RandPointInCircle(PlacementRadius));
 		FVector2D random_velocity(FMath::RandPointInCircle(MaxInitialVelocity));
 		float mass = FMath::FRandRange(MinMass, MaxMass);
@@ -49,12 +49,41 @@ void ABodyManager::BeginPlay()
 
 
 void ABodyManager::BuildBHTree() {
+    FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
+	
+	// int subdivisions = 10;
+	// int[100] cells_masses;
+	// FVector2D[100] center_of_masses;
+	// // TArray<Body>[100] buckets;
+
+	// for (FBodyEntity& body: Bodies) {
+	// 	int index_x = body.Position.X % (WorldWidth / subdivisions);
+	// 	int index_y = body.Position.Y % (WorldHeight / subdivisions);
+	// 	int index = FMath::Clamp(index_x + index_y * subdivisions, 0, 99);
+		
+	// 	center_of_masses[i] = center_of_masses[i] / body.Mass - body.Position / cell_masses[i]; 
+	// 	cell_masses[i] += body.Mass;
+	// }
+
+
+	BarnesHutTree tree(half_world, -half_world);
+	// ParallelFor(Bodies.Num(), [&] (int i) {
+	// 	tree.AddMass(Bodies[i].Mass, Bodies[i].Position);
+	// });
+	for (FBodyEntity& body: Bodies) {
+		tree.AddMass(body.Mass, body.Position);
+	}
+
+	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, 
+		FString::Printf(TEXT("Bodies added = %d"), tree.getTotalBodies()));
 
 }
 
 
 void ABodyManager::GravityStep(float DeltaTime)
 {
+	BuildBHTree();
+	return;
 	float MaxGravityDistance = WorldWidth;
     ParallelFor(Bodies.Num(), [&] (int i) {
         FVector2D acceleration(0.0f, 0.0f);
@@ -72,8 +101,7 @@ void ABodyManager::GravityStep(float DeltaTime)
 void ABodyManager::UpdatePositionStep(float DeltaTime)
 {
     FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
-	for (FBodyEntity& body: Bodies)
-	{
+	for (FBodyEntity& body: Bodies) {
 		body.Position += body.Velocity * DeltaTime;
 		body.Position.X = FMath::Wrap(body.Position.X, -half_world.X, half_world.X);
 		body.Position.Y = FMath::Wrap(body.Position.Y, -half_world.Y, half_world.Y);

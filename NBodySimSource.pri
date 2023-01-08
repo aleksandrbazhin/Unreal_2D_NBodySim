@@ -14495,6 +14495,7 @@ SOURCES += \
 	"$$unrealRootPath/Engine/Plugins/VirtualProduction/TimedDataMonitor/Source/TimedDataMonitorEditor/Private/TimedDataMonitorEditorStyle.cpp" \
 	"$$unrealRootPath/Engine/Plugins/XGEController/Source/Private/XGEControllerModule.cpp" \
 	"$$NBodySimRootPath/Source/NBodySim/BarnesHutTree.cpp" \
+	"$$NBodySimRootPath/Source/NBodySim/Body.cpp" \
 	"$$NBodySimRootPath/Source/NBodySim/BodyManager.cpp" \
 	"$$NBodySimRootPath/Source/NBodySim/NBodySim.cpp" \
  

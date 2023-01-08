@@ -4,10 +4,16 @@
 #include "BarnesHutTree.h"
 
 
-BarnesHutTree::BarnesHutTree()
+void BarnesHutTree::AddMass(float Mass, FVector2D Position)
 {
-}
-
-BarnesHutTree::~BarnesHutTree()
-{
+    BHTreeNode* node = Root.Get();
+    node->BodiesCount += 1;
+    node->TotalMass += Mass;
+    
+    while (node->BodiesCount > 4) {
+        node = node->GetQuadrant(Position);
+        node->BodiesCount += 1;
+        node->TotalMass += Mass;
+        node->CenterOfMass = Position;
+    }
 }
