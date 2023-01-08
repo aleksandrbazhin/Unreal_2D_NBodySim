@@ -14,7 +14,7 @@ struct FBodyEntity {
 	FVector2D Position;
 	FVector2D Velocity;
  	float Mass = 1.0f;
-	int id;
+	int Index;
 };
 
 
@@ -28,13 +28,17 @@ public:
 	UPROPERTY(VisibleAnywhere, Instanced, NoClear)
 		UInstancedStaticMeshComponent* InstancedMesh;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		int BodyNum = 100;
+		bool IsGravityEnabled = true;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		float BodyDisplayScale = 0.003f;
+		int BodyNum = 2000;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		float G = 10000.0f;
+		float PlacementRadius = 1000.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		float MaxInitialVelocity = 400.0f;
+		float MaxInitialVelocity = 500.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float BodyDisplayScale = 0.02f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float G = 1000.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float MinMass = 20.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
@@ -49,10 +53,10 @@ private:
 	TArray<FTransform> Transforms;
 	void InitBodies();
 	void BuildBHTree();
-	void RunGravityStep(float DeltaTime);
+	void GravityStep(float DeltaTime);
+	void UpdatePositionStep(float DeltaTime);
 
-	static FVector PositionFromPlanar(const FVector2D& XYCoordinates);
-
+	static FVector TranslationFrom2DCoordinates(const FVector2D& XYCoordinates);
 
 protected:
 	virtual void BeginPlay() override;

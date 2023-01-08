@@ -19042,10 +19042,8 @@ HEADERS += \
 	"$$unrealRootPath/Engine/Plugins/VirtualProduction/TimedDataMonitor/Source/TimedDataMonitorEditor/Private/TimedDataMonitorEditorSettings.h" \
 	"$$unrealRootPath/Engine/Plugins/VirtualProduction/TimedDataMonitor/Source/TimedDataMonitorEditor/Private/TimedDataMonitorEditorStyle.h" \
 	"$$unrealRootPath/Engine/Plugins/XGEController/Source/Public/XGEControllerModule.h" \
+	"$$NBodySimRootPath/Source/NBodySim/BarnesHutTree.h" \
 	"$$NBodySimRootPath/Source/NBodySim/BodyManager.h" \
-	"$$NBodySimRootPath/Source/NBodySim/Mass.h" \
-	"$$NBodySimRootPath/Source/NBodySim/MassManager.h" \
 	"$$NBodySimRootPath/Source/NBodySim/NBodySim.h" \
-	"$$NBodySimRootPath/Source/NBodySim/NBodySimGameModeBase.h" \
  
 
