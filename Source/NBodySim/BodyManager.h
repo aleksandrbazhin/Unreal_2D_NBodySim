@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "BodyManager.generated.h"
 
 
@@ -30,7 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		bool IsGravityEnabled = true;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		int BodyNum = 2000;
+		int BodyNum = 2500;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float PlacementRadius = 1000.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
@@ -43,6 +44,8 @@ public:
 		float MinMass = 20.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float MaxMass = 100.0f;
+	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
+		float MinimumGravityDistance = 100.0f;  // prevents division by zero and forces too high	
 	UPROPERTY(EditAnywhere, Category = "NBody Ortho Camera")
 		float WorldWidth = 8000.0f;
 		float WorldHeight = WorldWidth / 1.777778f; // camera default aspect ratio
@@ -64,6 +67,4 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	
-	
 };

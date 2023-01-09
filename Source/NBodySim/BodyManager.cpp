@@ -1,9 +1,7 @@
 #include "BodyManager.h"
 #include "Runtime/Core/Public/Async/ParallelFor.h"
-#include "BarnesHutTree.h"
 
 
-const float MINIMUM_AFFECTING_DISTANCE = 10.0f; // to prevent division by zero and forces too high 
 const float MAX_TICK = 0.0167; // to have stable simulation steps
 
 
@@ -23,21 +21,20 @@ void ABodyManager::InitBodies()
 {
 	Bodies.SetNumUninitialized(BodyNum);
 	Transforms.SetNumUninitialized(BodyNum);
-	for (int index = 0; index < BodyNum; ++index) {
-		FVector2D random_position(FMath::RandPointInCircle(PlacementRadius));
-		FVector2D random_velocity(FMath::RandPointInCircle(MaxInitialVelocity));
-		float mass = FMath::FRandRange(MinMass, MaxMass);
-		float mesh_scale = FMath::Sqrt(mass) * BodyDisplayScale;
-		FTransform transform (
+	for (int32_t Index = 0; Index < BodyNum; ++Index) {
+		FVector2D RandomPosition(FMath::RandPointInCircle(PlacementRadius));
+		FVector2D RandomVelocity(FMath::RandPointInCircle(MaxInitialVelocity));
+		float Mass = FMath::FRandRange(MinMass, MaxMass);
+		float MeshScale = FMath::Sqrt(Mass) * BodyDisplayScale;
+		FTransform MeshTransform (
 			FRotator(),
-			TranslationFrom2DCoordinates(random_position),
-			FVector(mesh_scale, mesh_scale, 1.0f)
+			TranslationFrom2DCoordinates(RandomPosition),
+			FVector(MeshScale, MeshScale, 1.0f)
 		);
-		Transforms[index] = transform;
-		Bodies[index] = FBodyEntity{random_position, random_velocity, mass, index};
+		Transforms[Index] = MeshTransform;
+		Bodies[Index] = FBodyEntity{RandomPosition, RandomVelocity, Mass, Index};
 	}
 	InstancedMesh->AddInstances(Transforms, false);
-
 }
 
 
@@ -48,64 +45,29 @@ void ABodyManager::BeginPlay()
 }
 
 
-void ABodyManager::BuildBHTree() {
-    FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
-	
-	// int subdivisions = 10;
-	// int[100] cells_masses;
-	// FVector2D[100] center_of_masses;
-	// // TArray<Body>[100] buckets;
-
-	// for (FBodyEntity& body: Bodies) {
-	// 	int index_x = body.Position.X % (WorldWidth / subdivisions);
-	// 	int index_y = body.Position.Y % (WorldHeight / subdivisions);
-	// 	int index = FMath::Clamp(index_x + index_y * subdivisions, 0, 99);
-		
-	// 	center_of_masses[i] = center_of_masses[i] / body.Mass - body.Position / cell_masses[i]; 
-	// 	cell_masses[i] += body.Mass;
-	// }
-
-
-	BarnesHutTree tree(half_world, -half_world);
-	// ParallelFor(Bodies.Num(), [&] (int i) {
-	// 	tree.AddMass(Bodies[i].Mass, Bodies[i].Position);
-	// });
-	for (FBodyEntity& body: Bodies) {
-		tree.AddMass(body.Mass, body.Position);
-	}
-
-	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, 
-		FString::Printf(TEXT("Bodies added = %d"), tree.getTotalBodies()));
-
-}
-
-
 void ABodyManager::GravityStep(float DeltaTime)
 {
-	BuildBHTree();
-	return;
-	float MaxGravityDistance = WorldWidth;
-    ParallelFor(Bodies.Num(), [&] (int i) {
-        FVector2D acceleration(0.0f, 0.0f);
-        for (FBodyEntity& affecting_body: Bodies) {
-            if (affecting_body.Index == Bodies[i].Index) continue; // exclude self
-            float distance = FVector2D::Distance(Bodies[i].Position, affecting_body.Position);
-            distance = FMath::Max(distance, MINIMUM_AFFECTING_DISTANCE); // avoids division by zero
-            acceleration += affecting_body.Mass / distance * G / distance * (affecting_body.Position - Bodies[i].Position) / distance;
+    ParallelFor(Bodies.Num(), [&] (int Index) {
+        FVector2D Acceleration(0.0f, 0.0f);
+        for (const FBodyEntity& AffectingBody: Bodies) {
+            if (AffectingBody.Index == Bodies[Index].Index) continue; // exclude self
+            float Distance = FVector2D::Distance(Bodies[Index].Position, AffectingBody.Position);
+            Distance = FMath::Max(Distance, MinimumGravityDistance); // avoids division by zero
+            Acceleration += AffectingBody.Mass / Distance * G / Distance * (AffectingBody.Position - Bodies[Index].Position) / Distance;
         }
-        Bodies[i].Velocity += acceleration * DeltaTime ;
+        Bodies[Index].Velocity += Acceleration * DeltaTime ;
     });
 }
 
 
 void ABodyManager::UpdatePositionStep(float DeltaTime)
 {
-    FVector2D half_world(WorldWidth * 0.5f, WorldHeight * 0.5f);
-	for (FBodyEntity& body: Bodies) {
-		body.Position += body.Velocity * DeltaTime;
-		body.Position.X = FMath::Wrap(body.Position.X, -half_world.X, half_world.X);
-		body.Position.Y = FMath::Wrap(body.Position.Y, -half_world.Y, half_world.Y);
-		Transforms[body.Index].SetTranslation(TranslationFrom2DCoordinates(body.Position));
+    FVector2D HalfWorld(WorldWidth * 0.5f, WorldHeight * 0.5f);
+	for (FBodyEntity& Body: Bodies) {
+		Body.Position += Body.Velocity * DeltaTime;
+		Body.Position.X = FMath::Wrap(Body.Position.X, -HalfWorld.X, HalfWorld.X);
+		Body.Position.Y = FMath::Wrap(Body.Position.Y, -HalfWorld.Y, HalfWorld.Y);
+		Transforms[Body.Index].SetTranslation(TranslationFrom2DCoordinates(Body.Position));
 	}
 	InstancedMesh->BatchUpdateInstancesTransforms(0, Transforms, false, true);
 }
@@ -113,7 +75,6 @@ void ABodyManager::UpdatePositionStep(float DeltaTime)
 
 void ABodyManager::Tick(float DeltaTime)
 {
-// 	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 40.0f, FColor::Green, TEXT("Tick!"));
 	if (DeltaTime > MAX_TICK) {
          DeltaTime = MAX_TICK;
 	}
