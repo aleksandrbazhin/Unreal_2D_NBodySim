@@ -21,9 +21,10 @@ void ABodyManager::InitBodies()
 {
 	Bodies.SetNumUninitialized(BodyNum);
 	Transforms.SetNumUninitialized(BodyNum);
-	for (int32_t Index = 0; Index < BodyNum; ++Index) {
+	for (int32 Index = 0; Index < BodyNum; ++Index) {
 		FVector2D RandomPosition(FMath::RandPointInCircle(PlacementRadius));
-		FVector2D RandomVelocity(FMath::RandPointInCircle(MaxInitialVelocity));
+		FVector2D RandomVelocity {FMath::FRandRange(BaseInitialVelocity - 100.0f, BaseInitialVelocity + 100.0f), 0};
+		RandomVelocity = RandomVelocity.GetRotated(90.0f + FMath::RadiansToDegrees(FMath::Atan2(RandomPosition.Y, RandomPosition.X)));
 		float Mass = FMath::FRandRange(MinMass, MaxMass);
 		float MeshScale = FMath::Sqrt(Mass) * BodyDisplayScale;
 		FTransform MeshTransform (
@@ -47,7 +48,7 @@ void ABodyManager::BeginPlay()
 
 void ABodyManager::GravityStep(float DeltaTime)
 {
-    ParallelFor(Bodies.Num(), [&] (int Index) {
+    ParallelFor(Bodies.Num(), [&] (int32 Index) {
         FVector2D Acceleration(0.0f, 0.0f);
         for (const FBodyEntity& AffectingBody: Bodies) {
             if (AffectingBody.Index == Bodies[Index].Index) continue; // exclude self

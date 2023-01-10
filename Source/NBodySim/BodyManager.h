@@ -12,10 +12,14 @@ USTRUCT()
 struct FBodyEntity {
 	GENERATED_BODY()
 
-	FVector2D Position;
-	FVector2D Velocity;
- 	float Mass = 1.0f;
-	int Index;
+	UPROPERTY()
+		FVector2D Position;
+	UPROPERTY()
+		FVector2D Velocity;
+	UPROPERTY()
+		float Mass = 1.0f;
+	UPROPERTY()
+		int32 Index;
 };
 
 
@@ -35,7 +39,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float PlacementRadius = 1000.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
-		float MaxInitialVelocity = 500.0f;
+		float BaseInitialVelocity = 500.0f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
 		float BodyDisplayScale = 0.02f;
 	UPROPERTY(EditAnywhere, Category = "NBody Simulation Parameters")
@@ -52,8 +56,11 @@ public:
 
 
 private:
-	TArray<FBodyEntity> Bodies;
-	TArray<FTransform> Transforms;
+	UPROPERTY()
+		TArray<FBodyEntity> Bodies;
+	UPROPERTY()
+		TArray<FTransform> Transforms;
+	// void CreateBody(FVector2D Position, FVector2D Velocity, float Mass, )
 	void InitBodies();
 	void BuildBHTree();
 	void GravityStep(float DeltaTime);
