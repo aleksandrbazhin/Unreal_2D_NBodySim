@@ -23,7 +23,8 @@ void ABodyManager::InitBodies()
 	Transforms.SetNumUninitialized(BodyNum);
 	for (int32 Index = 0; Index < BodyNum; ++Index) {
 		FVector2D RandomPosition(FMath::RandPointInCircle(PlacementRadius));
-		FVector2D RandomVelocity {FMath::FRandRange(BaseInitialVelocity - 100.0f, BaseInitialVelocity + 100.0f), 0};
+		float RadialSpeedFactor = PlacementRadius / RandomPosition.Size();
+		FVector2D RandomVelocity {FMath::FRandRange(BaseInitialVelocity - 100.0f, BaseInitialVelocity + 100.0f) / RadialSpeedFactor, 0};
 		RandomVelocity = RandomVelocity.GetRotated(90.0f + FMath::RadiansToDegrees(FMath::Atan2(RandomPosition.Y, RandomPosition.X)));
 		float Mass = FMath::FRandRange(MinMass, MaxMass);
 		float MeshScale = FMath::Sqrt(Mass) * BodyDisplayScale;
@@ -66,8 +67,8 @@ void ABodyManager::UpdatePositionStep(float DeltaTime)
     FVector2D HalfWorld(WorldWidth * 0.5f, WorldHeight * 0.5f);
 	for (FBodyEntity& Body: Bodies) {
 		Body.Position += Body.Velocity * DeltaTime;
-		Body.Position.X = FMath::Wrap(Body.Position.X, -HalfWorld.X, HalfWorld.X);
-		Body.Position.Y = FMath::Wrap(Body.Position.Y, -HalfWorld.Y, HalfWorld.Y);
+		// Body.Position.X = FMath::Wrap(Body.Position.X, -HalfWorld.X, HalfWorld.X);
+		// Body.Position.Y = FMath::Wrap(Body.Position.Y, -HalfWorld.Y, HalfWorld.Y);
 		Transforms[Body.Index].SetTranslation(TranslationFrom2DCoordinates(Body.Position));
 	}
 	InstancedMesh->BatchUpdateInstancesTransforms(0, Transforms, false, true);

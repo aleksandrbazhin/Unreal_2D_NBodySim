@@ -3,6 +3,6 @@ DerivedDataCache/*
 .vscode/*
 .kdev4/*
 Binaries/*
-Biuld/*
+Build/*
 Intermediate/*
 *.log
